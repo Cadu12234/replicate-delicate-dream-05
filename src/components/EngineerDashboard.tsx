@@ -57,9 +57,12 @@ const EngineerDashboard = ({ user, onLogout }: EngineerDashboardProps) => {
   const getStatusStep = (status: string) => {
     switch (status) {
       case 'pending': return 1;
+      case 'em_cotacao': 
       case 'approved': return 2;
       case 'in_progress': return 3;
+      case 'completed':
       case 'ready': return 4;
+      case 'entregue':
       case 'delivered': return 5;
       default: return 1;
     }
@@ -67,10 +70,12 @@ const EngineerDashboard = ({ user, onLogout }: EngineerDashboardProps) => {
 
   const getUrgencyLabel = (urgency: string) => {
     switch (urgency) {
-      case 'low': return 'Baixa';
-      case 'normal': return 'Média';
-      case 'high': return 'Alta';
-      default: return 'Média';
+      case 'baixa': return 'Baixa';
+      case 'normal': return 'Normal';
+      case 'media': return 'Média';
+      case 'alta': return 'Alta';
+      case 'critica': return 'Crítica';
+      default: return 'Normal';
     }
   };
 
@@ -204,7 +209,7 @@ const EngineerDashboard = ({ user, onLogout }: EngineerDashboardProps) => {
               <Card key={order.id} className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <Badge 
-                    variant={order.urgency === 'high' ? 'destructive' : order.urgency === 'normal' ? 'secondary' : 'outline'} 
+                    variant={order.urgency === 'alta' || order.urgency === 'critica' ? 'destructive' : order.urgency === 'media' ? 'default' : 'secondary'} 
                     className="text-xs"
                   >
                     {getUrgencyLabel(order.urgency)}
@@ -219,11 +224,18 @@ const EngineerDashboard = ({ user, onLogout }: EngineerDashboardProps) => {
                 {/* Status Steps */}
                 <div className="mb-4">
                   <div className="hidden sm:flex items-center justify-between text-xs text-gray-500 mb-2">
-                    <span>Pendente</span>
-                    <span>Em Cotação</span>
-                    <span>Comprado</span>
-                    <span>Saiu p/ Entrega</span>
-                    <span>Entregue</span>
+                    <span className="text-center">Pendente</span>
+                    <span className="text-center">Em Cotação</span>
+                    <span className="text-center">Comprado</span>
+                    <span className="text-center">Saiu p/ Entrega</span>
+                    <span className="text-center">Entregue</span>
+                  </div>
+                  <div className="sm:hidden grid grid-cols-5 gap-1 text-xs text-gray-500 mb-2">
+                    <span className="text-center">Pendente</span>
+                    <span className="text-center">Em Cotação</span>
+                    <span className="text-center">Comprado</span>
+                    <span className="text-center">Saiu p/ Entrega</span>
+                    <span className="text-center">Entregue</span>
                   </div>
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     {[1, 2, 3, 4, 5].map((step) => (

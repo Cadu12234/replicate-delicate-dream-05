@@ -46,7 +46,7 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
       if (usersError) throw usersError;
 
       setOrders(allOrders || []);
-      setMyOrders((allOrders || []).filter(order => order.responsible_id === user.id));
+      setMyOrders((allOrders || []).filter(order => order.responsible_id === user.id && order.status !== 'entregue' && order.status !== 'delivered'));
       setAvailableOrders((allOrders || []).filter(order => !order.responsible_id && order.status === 'pending'));
       setPendingUsers(users || []);
     } catch (error) {
@@ -73,9 +73,12 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
   const getStatusStep = (status: string) => {
     switch (status) {
       case 'pending': return 1;
+      case 'em_cotacao':
       case 'approved': return 2;
       case 'in_progress': return 3;
+      case 'completed':
       case 'ready': return 4;
+      case 'entregue':
       case 'delivered': return 5;
       default: return 1;
     }
@@ -83,10 +86,12 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
 
   const getNextStatus = (status: string) => {
     switch (status) {
-      case 'pending': return 'approved';
+      case 'pending': return 'em_cotacao';
+      case 'em_cotacao': 
       case 'approved': return 'in_progress';
-      case 'in_progress': return 'ready';
-      case 'ready': return 'delivered';
+      case 'in_progress': return 'completed';
+      case 'completed':
+      case 'ready': return 'entregue';
       default: return status;
     }
   };
@@ -94,9 +99,11 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
   const getNextStatusLabel = (status: string) => {
     switch (status) {
       case 'pending': return 'Em Cotação';
+      case 'em_cotacao':
       case 'approved': return 'Comprado';
       case 'in_progress': return 'Saiu para Entrega';
-      case 'ready': return 'Entregue/Recebido';
+      case 'completed':
+      case 'ready': return 'Entregue';
       default: return '';
     }
   };
@@ -171,9 +178,11 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
 
   const getUrgencyLabel = (urgency: string) => {
     switch (urgency) {
-      case 'low': return 'Baixa';
+      case 'baixa': return 'Baixa';
       case 'normal': return 'Normal';
-      case 'high': return 'Média';
+      case 'media': return 'Média';
+      case 'alta': return 'Alta';
+      case 'critica': return 'Crítica';
       default: return 'Normal';
     }
   };
@@ -341,7 +350,7 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
                   <Card key={order.id} className="p-4 sm:p-6">
                     <div className="flex items-center justify-between mb-4">
                       <Badge 
-                        variant={order.urgency === 'high' ? 'destructive' : order.urgency === 'normal' ? 'secondary' : 'outline'} 
+                        variant={order.urgency === 'alta' || order.urgency === 'critica' ? 'destructive' : order.urgency === 'media' ? 'default' : 'secondary'} 
                         className="text-xs"
                       >
                         {getUrgencyLabel(order.urgency)}
@@ -351,18 +360,25 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
 
                     {/* Status Steps */}
                     <div className="mb-4">
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                        <span>Pendente</span>
-                        <span>Em Cotação</span>
-                        <span>Comprado</span>
-                        <span>Saiu para Entrega</span>
-                        <span>Entregue/Recebido</span>
+                      <div className="hidden sm:flex items-center justify-between text-xs text-gray-500 mb-2">
+                        <span className="text-center">Pendente</span>
+                        <span className="text-center">Em Cotação</span>
+                        <span className="text-center">Comprado</span>
+                        <span className="text-center">Saiu p/ Entrega</span>
+                        <span className="text-center">Entregue</span>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="sm:hidden grid grid-cols-5 gap-1 text-xs text-gray-500 mb-2">
+                        <span className="text-center">Pendente</span>
+                        <span className="text-center">Em Cotação</span>
+                        <span className="text-center">Comprado</span>
+                        <span className="text-center">Saiu p/ Entrega</span>
+                        <span className="text-center">Entregue</span>
+                      </div>
+                      <div className="flex items-center space-x-1 sm:space-x-2">
                         {[1, 2, 3, 4, 5].map((step) => (
                           <div key={step} className="flex items-center">
                             <div 
-                              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                              className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                                 step <= getStatusStep(order.status) 
                                   ? 'bg-blue-600 text-white' 
                                   : 'bg-gray-200 text-gray-400'
@@ -372,7 +388,7 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
                             </div>
                             {step < 5 && (
                               <div 
-                                className={`w-8 h-0.5 ${
+                                className={`w-4 sm:w-8 h-0.5 ${
                                   step < getStatusStep(order.status) 
                                     ? 'bg-blue-600' 
                                     : 'bg-gray-200'
@@ -436,12 +452,12 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
                 {myOrders.map((order) => (
                   <Card key={order.id} className="p-4 sm:p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <Badge 
-                        variant={order.urgency === 'high' ? 'destructive' : order.urgency === 'normal' ? 'secondary' : 'outline'} 
-                        className="text-xs"
-                      >
-                        {getUrgencyLabel(order.urgency)}
-                      </Badge>
+                     <Badge 
+                       variant={order.urgency === 'alta' || order.urgency === 'critica' ? 'destructive' : order.urgency === 'media' ? 'default' : 'secondary'} 
+                       className="text-xs"
+                     >
+                       {getUrgencyLabel(order.urgency)}
+                     </Badge>
                       <Badge variant="secondary">
                         {order.status === 'pending' ? 'Pendente' : 
                          order.status === 'approved' ? 'Em Cotação' : 
@@ -452,38 +468,45 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
                     </div>
 
                     {/* Status Steps */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                        <span>Pendente</span>
-                        <span>Em Cotação</span>
-                        <span>Comprado</span>
-                        <span>Saiu para Entrega</span>
-                        <span>Entregue/Recebido</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {[1, 2, 3, 4, 5].map((step) => (
-                          <div key={step} className="flex items-center">
-                            <div 
-                              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                                step <= getStatusStep(order.status) 
-                                  ? 'bg-blue-600 text-white' 
-                                  : 'bg-gray-200 text-gray-400'
-                              }`}
-                            >
-                              {step}
-                            </div>
-                            {step < 5 && (
-                              <div 
-                                className={`w-8 h-0.5 ${
-                                  step < getStatusStep(order.status) 
-                                    ? 'bg-blue-600' 
-                                    : 'bg-gray-200'
-                                }`} 
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                     <div className="mb-4">
+                       <div className="hidden sm:flex items-center justify-between text-xs text-gray-500 mb-2">
+                         <span className="text-center">Pendente</span>
+                         <span className="text-center">Em Cotação</span>
+                         <span className="text-center">Comprado</span>
+                         <span className="text-center">Saiu p/ Entrega</span>
+                         <span className="text-center">Entregue</span>
+                       </div>
+                       <div className="sm:hidden grid grid-cols-5 gap-1 text-xs text-gray-500 mb-2">
+                         <span className="text-center">Pendente</span>
+                         <span className="text-center">Em Cotação</span>
+                         <span className="text-center">Comprado</span>
+                         <span className="text-center">Saiu p/ Entrega</span>
+                         <span className="text-center">Entregue</span>
+                       </div>
+                       <div className="flex items-center space-x-1 sm:space-x-2">
+                         {[1, 2, 3, 4, 5].map((step) => (
+                           <div key={step} className="flex items-center">
+                             <div 
+                               className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                                 step <= getStatusStep(order.status) 
+                                   ? 'bg-blue-600 text-white' 
+                                   : 'bg-gray-200 text-gray-400'
+                               }`}
+                             >
+                               {step}
+                             </div>
+                             {step < 5 && (
+                               <div 
+                                 className={`w-4 sm:w-8 h-0.5 ${
+                                   step < getStatusStep(order.status) 
+                                     ? 'bg-blue-600' 
+                                     : 'bg-gray-200'
+                                 }`} 
+                               />
+                             )}
+                           </div>
+                         ))}
+                       </div>
                     </div>
 
                     {/* Order Details */}
@@ -517,14 +540,14 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
                       <p className="text-sm text-gray-600">{order.materials}</p>
                     </div>
 
-                    {order.status !== 'delivered' && (
-                      <Button 
-                        onClick={() => advanceOrder(order.id, order.status)}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        🔄 Avançar para: {getNextStatusLabel(order.status)}
-                      </Button>
-                    )}
+                     {order.status !== 'entregue' && order.status !== 'delivered' && (
+                       <Button 
+                         onClick={() => advanceOrder(order.id, order.status)}
+                         className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                       >
+                         🔄 Avançar para: {getNextStatusLabel(order.status)}
+                       </Button>
+                     )}
                   </Card>
                 ))}
               </div>
@@ -554,12 +577,12 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
                 {orders.map((order) => (
                   <Card key={order.id} className="p-4 sm:p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <Badge 
-                        variant={order.urgency === 'high' ? 'destructive' : order.urgency === 'normal' ? 'secondary' : 'outline'} 
-                        className="text-xs"
-                      >
-                        {getUrgencyLabel(order.urgency)}
-                      </Badge>
+                       <Badge 
+                         variant={order.urgency === 'alta' || order.urgency === 'critica' ? 'destructive' : order.urgency === 'media' ? 'default' : 'secondary'} 
+                         className="text-xs"
+                       >
+                         {getUrgencyLabel(order.urgency)}
+                       </Badge>
                       <Badge 
                         variant={
                           order.status === 'delivered' ? 'default' :
@@ -575,38 +598,45 @@ const ManagerDashboard = ({ user, onLogout }: ManagerDashboardProps) => {
                     </div>
 
                     {/* Status Steps */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                        <span>Pendente</span>
-                        <span>Em Cotação</span>
-                        <span>Comprado</span>
-                        <span>Saiu para Entrega</span>
-                        <span>Entregue/Recebido</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {[1, 2, 3, 4, 5].map((step) => (
-                          <div key={step} className="flex items-center">
-                            <div 
-                              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                                step <= getStatusStep(order.status) 
-                                  ? order.status === 'delivered' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'
-                                  : 'bg-gray-200 text-gray-400'
-                              }`}
-                            >
-                              {step <= getStatusStep(order.status) && order.status === 'delivered' ? '✓' : step}
-                            </div>
-                            {step < 5 && (
-                              <div 
-                                className={`w-8 h-0.5 ${
-                                  step < getStatusStep(order.status) 
-                                    ? order.status === 'delivered' ? 'bg-green-600' : 'bg-blue-600'
-                                    : 'bg-gray-200'
-                                }`} 
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                     <div className="mb-4">
+                       <div className="hidden sm:flex items-center justify-between text-xs text-gray-500 mb-2">
+                         <span className="text-center">Pendente</span>
+                         <span className="text-center">Em Cotação</span>
+                         <span className="text-center">Comprado</span>
+                         <span className="text-center">Saiu p/ Entrega</span>
+                         <span className="text-center">Entregue</span>
+                       </div>
+                       <div className="sm:hidden grid grid-cols-5 gap-1 text-xs text-gray-500 mb-2">
+                         <span className="text-center">Pendente</span>
+                         <span className="text-center">Em Cotação</span>
+                         <span className="text-center">Comprado</span>
+                         <span className="text-center">Saiu p/ Entrega</span>
+                         <span className="text-center">Entregue</span>
+                       </div>
+                       <div className="flex items-center space-x-1 sm:space-x-2">
+                         {[1, 2, 3, 4, 5].map((step) => (
+                           <div key={step} className="flex items-center">
+                             <div 
+                               className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                                 step <= getStatusStep(order.status) 
+                                   ? (order.status === 'entregue' || order.status === 'delivered') ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'
+                                   : 'bg-gray-200 text-gray-400'
+                               }`}
+                             >
+                               {step <= getStatusStep(order.status) && (order.status === 'entregue' || order.status === 'delivered') ? '✓' : step}
+                             </div>
+                             {step < 5 && (
+                               <div 
+                                 className={`w-4 sm:w-8 h-0.5 ${
+                                   step < getStatusStep(order.status) 
+                                     ? (order.status === 'entregue' || order.status === 'delivered') ? 'bg-green-600' : 'bg-blue-600'
+                                     : 'bg-gray-200'
+                                 }`} 
+                               />
+                             )}
+                           </div>
+                         ))}
+                       </div>
                     </div>
 
                     {/* Order Details */}

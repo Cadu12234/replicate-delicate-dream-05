@@ -165,10 +165,10 @@ const CreateOrderForm = ({ user, onBack, onSuccess }: CreateOrderFormProps) => {
             
             <Button
               type="button"
-              variant={formData.urgency === 'medium' ? 'default' : 'outline'}
-              onClick={() => setFormData(prev => ({ ...prev, urgency: 'medium' }))}
+              variant={formData.urgency === 'media' ? 'default' : 'outline'}
+              onClick={() => setFormData(prev => ({ ...prev, urgency: 'media' }))}
               className={`flex items-center justify-center space-x-1 sm:space-x-2 h-12 sm:h-16 text-sm ${
-                formData.urgency === 'medium' 
+                formData.urgency === 'media' 
                   ? 'bg-yellow-100 border-yellow-300 text-yellow-700 hover:bg-yellow-200' 
                   : 'border-gray-300'
               }`}
@@ -179,10 +179,10 @@ const CreateOrderForm = ({ user, onBack, onSuccess }: CreateOrderFormProps) => {
             
             <Button
               type="button"
-              variant={formData.urgency === 'high' ? 'default' : 'outline'}
-              onClick={() => setFormData(prev => ({ ...prev, urgency: 'high' }))}
+              variant={formData.urgency === 'alta' ? 'default' : 'outline'}
+              onClick={() => setFormData(prev => ({ ...prev, urgency: 'alta' }))}
               className={`flex items-center justify-center space-x-1 sm:space-x-2 h-12 sm:h-16 text-sm ${
-                formData.urgency === 'high' 
+                formData.urgency === 'alta' 
                   ? 'bg-red-100 border-red-300 text-red-700 hover:bg-red-200' 
                   : 'border-gray-300'
               }`}
